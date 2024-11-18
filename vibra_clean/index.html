@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <style>
+    body {
+      font-family: Helvetica, sans-serif;
+      text-align: center;
+      margin: 0;
+      background: url('https://plus.unsplash.com/premium_photo-1661917179706-33e305a4ee45?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+    .header {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .header img {
+      max-height: 80px;
+      object-fit: contain;
+      width: auto;
+      max-width: 45%;
+    }
+    .container {
+      margin: 50px auto;
+      max-width: 600px;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    button {
+      font-size: 18px;
+      padding: 15px 30px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+    .btn-green { background-color: #28a745; color: white; }
+    .btn-green:hover { background-color: #218838; }
+    .btn-red { background-color: #dc3545; color: white; }
+    .btn-red:hover { background-color: #c82333; }
+    .btn-blue { background-color: #007bff; color: white; }
+    .btn-blue:hover { background-color: #0056b3; }
+    .btn-gray { background-color: #6c757d; color: white; }
+    .btn-gray:hover { background-color: #5a6268; }
+    input[type='number'] {
+      padding: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 2px solid #ccc;
+    }
+    h2 {
+      font-size: 24px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Logo_EPFL_2019.svg" alt="EPFL Logo">
+  <img src="https://images.squarespace-cdn.com/content/v1/66e0a1b90e50d05da21c996f/ef2ff8f5-7d70-4679-973c-abf29e29d44a/logo-black.png" alt="Other Logo">
+</div>
+
+<div class="container">
+  <h1>Portioning System</h1>
+  <label for="timeInput">Rotation Time (seconds): </label>
+  <input type="number" id="timeInput" value="1" min="0"><br><br>
+  <button class="btn-green" onclick="setServo(0)">CW</button>
+  <button class="btn-gray" onclick="setServo(94)">STOP</button>
+  <button class="btn-blue" onclick="setServo(180)">CCW</button>
+</div>
+
+<div class="container">
+  <h1>Cleaning Process</h1>
+  <button class="btn-green" onclick="setWashingFlag(1)">START</button>
+  <button class="btn-red" onclick="setWashingFlag(0)">STOP</button>
+</div>
+
+<p id="errorMessage" style="color:red;"></p>
+
+<script>
+  function setServo(pos) {
+    const timeInput = document.getElementById('timeInput').value;
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = '';
+    if (isNaN(timeInput) || timeInput <= 0) {
+      errorMessage.textContent = 'Please enter a valid positive number for the time.';
+      return;
+    }
+    const timeInMilliseconds = timeInput * 1000;
+    fetch('/?value=' + pos + '&time=' + timeInMilliseconds)
+      .catch((error) => { console.error('Error:', error); });
+  }
+  function setWashingFlag(flag) {
+    fetch('/?washingFlag=' + flag)
+      .catch((error) => { console.error('Error:', error); });
+  }
+</script>
+
+</body>
+</html>
