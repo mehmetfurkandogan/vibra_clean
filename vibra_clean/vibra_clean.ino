@@ -8,10 +8,12 @@
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM DEFINES
 // Motor Driver Pins
-#define A3 12
+#define A3 14
 #define A4 13
-#define mySensor 34 // Change this to the correct analog pin
-#define servoPin 13
+#define waterLevelSensor 19  // Change this to the correct analog pin
+#define servoPin 12
+#define YELLOW 30
+#define GREEN 31
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
 // Servo
@@ -23,7 +25,7 @@ const char* password = "2QqepaUH28j3yYr";
 
 // Water level monitoring
 volatile int waterLevel = 0;
-const int threshold = 1800;
+const int threshold = 1600;
 
 // Motor Control
 volatile int motorInput = 0;
@@ -40,37 +42,60 @@ bool isRotating = false;
 // System Flags
 bool washingFlag = false;
 ///////////////////////////////////////////////////////////////////////////// FUNCTION DEFINITIONS
-// Interrupt service routine for water level monitoring
-void IRAM_ATTR waterLevelISR() {
-  waterLevel = analogRead(mySensor);
-}
+
 
 ///////////////////////////////////////////////////////////////////////////// SETUP
 void setup() {
   Serial.begin(115200);
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
-  pinMode(mySensor, INPUT);
+
+  pinMode(YELLOW, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+
+  pinMode(waterLevelSensor, INPUT);
   pinMode(servoPin, OUTPUT);
+  digitalWrite(A3, LOW);
+  delay(10);
+  digitalWrite(A4, LOW);
+  delay(10);
+
+
+
 
   // Create FreeRTOS tasks
-  xTaskCreatePinnedToCore(webServerTask, "WebServerTask", 10000, NULL, 1, NULL, 1); // Core 1
+  xTaskCreatePinnedToCore(webServerTask, "WebServerTask", 10000, NULL, 1, NULL, 1);  // Core 1
 }
 
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
-  if (washingFlag) {
+  if (washingFlag == 1) {
+    digitalWrite(GREEN, HIGH);
+    waterLevel = analogRead(waterLevelSensor);
     int error = threshold - waterLevel;
     motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 255);
     // Serial.println(motorInput);
     if (waterLevel < threshold) {
-
+      analogWrite(A3, motorInput);
+      delay(10);
+      analogWrite(A4, motorInput);
+      delay(10);
     } else {
-      digitalWrite(A3, LOW);
-      digitalWrite(A4, LOW);
+      analogWrite(A3, 0);
+      delay(10);
+      analogWrite(A4, 0);
+      delay(10);
     }
 
-    delay(10); // Small delay for stability
+    delay(10);  // Small delay for stability
+  } else {
+
+    digitalWrite(GREEN, HIGH);
+    delay(10);
+    analogWrite(A3, 0);
+    delay(10);
+    analogWrite(A4, 0);
+    delay(10);
   }
 }
 
@@ -88,6 +113,7 @@ void webServerTask(void* parameter) {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
+  digitalWrite(YELLOW, HIGH);
 
   while (true) {
     WiFiClient client = server.available();
@@ -126,16 +152,16 @@ void webServerTask(void* parameter) {
             client.println("  display: flex;");
             client.println("  justify-content: space-around;");
             client.println("  align-items: center;");
-            client.println("  max-width: 600px;"); // Match the width of the boxes below
-            client.println("  margin: 0 auto;"); // Center align
+            client.println("  max-width: 600px;");  // Match the width of the boxes below
+            client.println("  margin: 0 auto;");    // Center align
             client.println("  padding: 20px;");
             client.println("  background-color: rgba(255, 255, 255, 0.1);");
             client.println("}");
             client.println(".header img {");
             client.println("  max-height: 80px;");
-            client.println("  object-fit: contain;"); // Ensure images scale proportionally without distortion
-            client.println("  width: auto;"); // Maintain aspect ratio by adjusting width automatically
-            client.println("  max-width: 45%;"); // Scale images proportionally within the header
+            client.println("  object-fit: contain;");  // Ensure images scale proportionally without distortion
+            client.println("  width: auto;");          // Maintain aspect ratio by adjusting width automatically
+            client.println("  max-width: 45%;");       // Scale images proportionally within the header
             client.println("}");
             client.println(".container {");
             client.println("  margin: 50px auto;");
@@ -243,7 +269,8 @@ void webServerTask(void* parameter) {
         rotationDuration = timeString.toInt();
 
         if (targetPosition == 94) {
-          myservo.write(94); // Stop
+          ;
+          myservo.write(94);  // Stop
           isRotating = false;
           Serial.println("Servo Stopped.");
         } else {
@@ -266,7 +293,7 @@ void webServerTask(void* parameter) {
 
     // Check if rotation duration has elapsed
     if (isRotating && (millis() - rotationStartTime >= rotationDuration)) {
-      myservo.write(94); // Stop the servo
+      myservo.write(94);  // Stop the servo
       isRotating = false;
       Serial.println("Servo rotation completed.");
     }
