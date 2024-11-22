@@ -12,6 +12,8 @@
 #define A4 13
 #define waterLevelSensor 19  // Change this to the correct analog pin
 #define servoPin 12
+#define yellow 10
+#define green 11
 
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
@@ -48,10 +50,15 @@ void setup() {
   Serial.begin(115200);
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
+  pinMode(yellow, OUTPUT);
+  pinMode(green, OUTPUT);
 
 
   pinMode(waterLevelSensor, INPUT);
   pinMode(servoPin, OUTPUT);
+
+  digitalWrite(yellow, LOW);
+  digitalWrite(green, LOW);
   digitalWrite(A3, LOW);
   delay(10);
   digitalWrite(A4, LOW);
@@ -104,6 +111,7 @@ void webServerTask(void* parameter) {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
+  digitalWrite(yellow, HIGH);
 
   while (true) {
     WiFiClient client = server.available();
@@ -274,6 +282,12 @@ void webServerTask(void* parameter) {
         int pos2 = header.indexOf(' ', pos1);
         String flagString = header.substring(pos1, pos2);
         washingFlag = flagString.toInt();
+        if(washingFlag){
+          digitalWrite(green, HIGH);
+        }
+        else{
+          digitalWrite(green, LOW);
+        }
         Serial.println("Washing flag updated: " + flagString);
       }
 
