@@ -12,8 +12,7 @@
 #define A4 13
 #define waterLevelSensor 19  // Change this to the correct analog pin
 #define servoPin 12
-#define YELLOW 30
-#define GREEN 31
+
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
 // Servo
@@ -50,8 +49,6 @@ void setup() {
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
 
-  pinMode(YELLOW, OUTPUT);
-  pinMode(GREEN, OUTPUT);
 
   pinMode(waterLevelSensor, INPUT);
   pinMode(servoPin, OUTPUT);
@@ -61,8 +58,6 @@ void setup() {
   delay(10);
 
 
-
-
   // Create FreeRTOS tasks
   xTaskCreatePinnedToCore(webServerTask, "WebServerTask", 10000, NULL, 1, NULL, 1);  // Core 1
 }
@@ -70,7 +65,6 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
   if (washingFlag == 1) {
-    digitalWrite(GREEN, HIGH);
     waterLevel = analogRead(waterLevelSensor);
     int error = threshold - waterLevel;
     motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 255);
@@ -89,9 +83,6 @@ void loop() {
 
     delay(10);  // Small delay for stability
   } else {
-
-    digitalWrite(GREEN, HIGH);
-    delay(10);
     analogWrite(A3, 0);
     delay(10);
     analogWrite(A4, 0);
@@ -113,7 +104,6 @@ void webServerTask(void* parameter) {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
-  digitalWrite(YELLOW, HIGH);
 
   while (true) {
     WiFiClient client = server.available();
