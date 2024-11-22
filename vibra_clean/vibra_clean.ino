@@ -14,6 +14,7 @@
 #define servoPin 12
 #define yellow 10
 #define green 11
+#define vibrationA 9 
 
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
@@ -50,6 +51,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
+  pinMode(vibrationA, OUTPUT);
   pinMode(yellow, OUTPUT);
   pinMode(green, OUTPUT);
 
@@ -60,6 +62,7 @@ void setup() {
   digitalWrite(yellow, LOW);
   digitalWrite(green, LOW);
   digitalWrite(A3, LOW);
+  digitalWrite(vibrationA, LOW);
   delay(10);
   digitalWrite(A4, LOW);
   delay(10);
@@ -72,6 +75,7 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
   if (washingFlag == 1) {
+    analogWrite(vibrationA, 200);
     waterLevel = analogRead(waterLevelSensor);
     int error = threshold - waterLevel;
     motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 255);
@@ -90,6 +94,8 @@ void loop() {
 
     delay(10);  // Small delay for stability
   } else {
+    analogWrite(vibrationA, 0);
+    delay(10);
     analogWrite(A3, 0);
     delay(10);
     analogWrite(A4, 0);
