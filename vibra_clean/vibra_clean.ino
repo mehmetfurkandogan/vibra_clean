@@ -149,8 +149,8 @@ void webServerTask(void* parameter) {
             client.println("  font-family: Helvetica, sans-serif;");
             client.println("  text-align: center;");
             client.println("  margin: 0;");
-            client.println("  background: url('https://plus.unsplash.com/premium_photo-1661917179706-33e305a4ee45?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed;");
-            client.println("  color: white;");
+            client.println("  background: url('https://wallpapercave.com/wp/wp3592385.jpg') no-repeat center center fixed;");
+            client.println("  color: black;");
             client.println("}");
             client.println(".header {");
             client.println("  display: flex;");
@@ -159,7 +159,7 @@ void webServerTask(void* parameter) {
             client.println("  max-width: 600px;");  // Match the width of the boxes below
             client.println("  margin: 0 auto;");    // Center align
             client.println("  padding: 20px;");
-            client.println("  background-color: rgba(255, 255, 255, 0.1);");
+            client.println("  background-color: rgba(255, 255, 255, 0.0);");
             client.println("}");
             client.println(".header img {");
             client.println("  max-height: 80px;");
@@ -170,10 +170,10 @@ void webServerTask(void* parameter) {
             client.println(".container {");
             client.println("  margin: 50px auto;");
             client.println("  max-width: 600px;");
-            client.println("  background-color: rgba(255, 255, 255, 0.1);");
+            client.println("  background-color: rgba(255, 255, 255, 0.4);");
             client.println("  padding: 20px;");
             client.println("  border-radius: 15px;");
-            client.println("  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);");
+            client.println("  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);");
             client.println("}");
             client.println("button {");
             client.println("  font-size: 18px;");
