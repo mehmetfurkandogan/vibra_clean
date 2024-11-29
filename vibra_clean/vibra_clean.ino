@@ -22,6 +22,7 @@
 // Servo
 Servo myservo;
 
+
 // Wi-Fi credentials
 const char* ssid = "mfd";
 const char* password = "2QqepaUH28j3yYr";
@@ -41,9 +42,12 @@ WiFiServer server(80);
 
 // Servo control variables
 int targetPosition = 90;
-int rotationDuration = 0;
+float rotationDuration = 0;
 unsigned long rotationStartTime = 0;
 bool isRotating = false;
+unsigned long lastCWtime = 0;
+unsigned long portioningInterval = 1000;
+unsigned long unclogTime = 100;
 
 // System Flags
 bool washingFlag = false;
@@ -225,11 +229,11 @@ void webServerTask(void* parameter) {
 
             client.println("<div class='container'>");
             client.println("<h1>Portioning System</h1>");
-            client.println("<label for='timeInput'>Rotation Time (seconds): </label>");
+            client.println("<label for='timeInput'>Rice (grams): </label>");
             client.println("<input type='number' id='timeInput' value='1' min='0'><br><br>");
-            client.println("<button class='btn-green' onclick='setServo(45)'>CW</button>");
+            // client.println("<button class='btn-green' onclick='setServo(45)'>Unclog</button>");
             client.println("<button class='btn-gray' onclick='setServo(94)'>STOP</button>");
-            client.println("<button class='btn-blue' onclick='setServo(130)'>CCW</button>");
+            client.println("<button class='btn-blue' onclick='setServo(130)'>PORTION</button>");
             client.println("</div>");
             client.println("<div class='container'>");
             client.println("<h1>Cleaning Process</h1>");
@@ -276,7 +280,8 @@ void webServerTask(void* parameter) {
         int timeStart = header.indexOf("time=") + 5;
         int timeEnd = header.indexOf(' ', timeStart);
         String timeString = header.substring(timeStart, timeEnd);
-        rotationDuration = timeString.toInt();
+        rotationDuration = float(timeString.toInt());
+        rotationDuration = rotationDuration/16.32;
 
         if (targetPosition == 94) {
           myservo.write(94);  // Stop
@@ -303,6 +308,13 @@ void webServerTask(void* parameter) {
 
       client.stop();
       Serial.println("Client disconnected.");
+    }
+
+    if (isRotating && (millis() - lastCWtime >= portioningInterval)){
+      myservo.write(30);
+      delay(unclogTime);
+      lastCWtime = millis();
+      myservo.write(targetPosition);
     }
 
     // Check if rotation duration has elapsed

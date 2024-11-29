@@ -9,3 +9,7 @@ Clear water 2380
 Air again 1920
 Rice water 800
 Air again 2100
+
+
+max is 4095
+
