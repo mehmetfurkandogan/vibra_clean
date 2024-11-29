@@ -1,0 +1,11 @@
+Air 1800
+Clear Water 2380
+Air again 2100 and decreasing slowly
+Rice Water 2150
+Air again 2200
+Rice water 800
+Air again 2000
+Clear water 2380
+Air again 1920
+Rice water 800
+Air again 2100

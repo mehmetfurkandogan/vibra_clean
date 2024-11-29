@@ -1,0 +1,8 @@
+50 mA with ESP only
+
+with 1 motor 0.6 A
+
+     2 motors 1.06 A
+
+output currents:
+

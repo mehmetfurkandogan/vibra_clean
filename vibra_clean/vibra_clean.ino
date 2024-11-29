@@ -14,7 +14,8 @@
 #define servoPin 12
 #define yellow 10
 #define green 11
-#define vibrationA 9 
+#define vibrationA 9
+#define turbiditySensor 20
 
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
@@ -28,6 +29,9 @@ const char* password = "2QqepaUH28j3yYr";
 // Water level monitoring
 volatile int waterLevel = 0;
 const int threshold = 1600;
+
+//  Turbidity Monitorıng
+volatile int turbidityLevel;
 
 // Motor Control
 volatile int motorInput = 0;
@@ -57,6 +61,7 @@ void setup() {
 
 
   pinMode(waterLevelSensor, INPUT);
+  pinMode(turbiditySensor, INPUT);
   pinMode(servoPin, OUTPUT);
 
   digitalWrite(yellow, LOW);
@@ -77,8 +82,9 @@ void loop() {
   if (washingFlag == 1) {
     analogWrite(vibrationA, 200);
     waterLevel = analogRead(waterLevelSensor);
+    turbidityLevel = analogRead(turbiditySensor);
     int error = threshold - waterLevel;
-    motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 255);
+    motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 220);
     // Serial.println(motorInput);
     if (waterLevel < threshold) {
       analogWrite(A3, motorInput);
@@ -150,7 +156,7 @@ void webServerTask(void* parameter) {
             client.println("  text-align: center;");
             client.println("  margin: 0;");
             client.println("  background: url('https://plus.unsplash.com/premium_photo-1661917179706-33e305a4ee45?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed;");
-            client.println("  color: white;");
+            client.println("  color: black;");
             client.println("}");
             client.println(".header {");
             client.println("  display: flex;");
@@ -221,9 +227,9 @@ void webServerTask(void* parameter) {
             client.println("<h1>Portioning System</h1>");
             client.println("<label for='timeInput'>Rotation Time (seconds): </label>");
             client.println("<input type='number' id='timeInput' value='1' min='0'><br><br>");
-            client.println("<button class='btn-green' onclick='setServo(0)'>CW</button>");
+            client.println("<button class='btn-green' onclick='setServo(45)'>CW</button>");
             client.println("<button class='btn-gray' onclick='setServo(94)'>STOP</button>");
-            client.println("<button class='btn-blue' onclick='setServo(180)'>CCW</button>");
+            client.println("<button class='btn-blue' onclick='setServo(130)'>CCW</button>");
             client.println("</div>");
             client.println("<div class='container'>");
             client.println("<h1>Cleaning Process</h1>");
@@ -273,7 +279,6 @@ void webServerTask(void* parameter) {
         rotationDuration = timeString.toInt();
 
         if (targetPosition == 94) {
-          ;
           myservo.write(94);  // Stop
           isRotating = false;
           Serial.println("Servo Stopped.");
@@ -288,10 +293,9 @@ void webServerTask(void* parameter) {
         int pos2 = header.indexOf(' ', pos1);
         String flagString = header.substring(pos1, pos2);
         washingFlag = flagString.toInt();
-        if(washingFlag){
+        if (washingFlag) {
           digitalWrite(green, HIGH);
-        }
-        else{
+        } else {
           digitalWrite(green, LOW);
         }
         Serial.println("Washing flag updated: " + flagString);
@@ -304,6 +308,7 @@ void webServerTask(void* parameter) {
     // Check if rotation duration has elapsed
     if (isRotating && (millis() - rotationStartTime >= rotationDuration)) {
       myservo.write(94);  // Stop the servo
+      delay(5);
       isRotating = false;
       Serial.println("Servo rotation completed.");
     }
