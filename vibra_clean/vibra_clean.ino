@@ -51,6 +51,7 @@ unsigned long unclogTime = 100;
 
 // System Flags
 bool washingFlag = false;
+bool stop_servo = false;
 ///////////////////////////////////////////////////////////////////////////// FUNCTION DEFINITIONS
 
 
@@ -83,6 +84,11 @@ void setup() {
 
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
+  if (stop_servo){
+    myservo.write(94);
+    delay(10);
+    stop_servo = false;
+  }
   if (washingFlag == 1) {
     analogWrite(vibrationA, 200);
     waterLevel = analogRead(waterLevelSensor);
@@ -286,6 +292,7 @@ void webServerTask(void* parameter) {
         if (targetPosition == 94) {
           myservo.write(94);  // Stop
           isRotating = false;
+          stop_servo = true;
           Serial.println("Servo Stopped.");
         } else {
           myservo.write(targetPosition);
@@ -319,6 +326,7 @@ void webServerTask(void* parameter) {
 
     // Check if rotation duration has elapsed
     if (isRotating && (millis() - rotationStartTime >= rotationDuration)) {
+      stop_servo = true;
       myservo.write(94);  // Stop the servo
       delay(5);
       isRotating = false;
