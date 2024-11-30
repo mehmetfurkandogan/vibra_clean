@@ -90,11 +90,11 @@ void loop() {
     stop_servo = false;
   }
   if (washingFlag == 1) {
-    analogWrite(vibrationA, 200);
+    analogWrite(vibrationA, 4095);
     waterLevel = analogRead(waterLevelSensor);
     turbidityLevel = analogRead(turbiditySensor);
     int error = threshold - waterLevel;
-    motorInput = constrain(map(error, 0, threshold, 0, 255), 0, 220);
+    motorInput = constrain(map(error, 0, threshold, 0, 4095), 0, 3600);
     // Serial.println(motorInput);
     if (waterLevel < threshold) {
       analogWrite(A3, motorInput);
@@ -317,12 +317,12 @@ void webServerTask(void* parameter) {
       Serial.println("Client disconnected.");
     }
 
-    if (isRotating && (millis() - lastCWtime >= portioningInterval)){
-      myservo.write(30);
-      delay(unclogTime);
-      lastCWtime = millis();
-      myservo.write(targetPosition);
-    }
+    // if (isRotating && (millis() - lastCWtime >= portioningInterval)){
+    //   myservo.write(30);
+    //   delay(unclogTime);
+    //   lastCWtime = millis();
+    //   myservo.write(targetPosition);
+    // }
 
     // Check if rotation duration has elapsed
     if (isRotating && (millis() - rotationStartTime >= rotationDuration)) {
