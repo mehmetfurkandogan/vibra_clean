@@ -22,14 +22,16 @@
 // Servo
 Servo myservo;
 
-
 // Wi-Fi credentials
 const char* ssid = "mfd";
 const char* password = "2QqepaUH28j3yYr";
 
+// const char* ssid = "EmrePhone";
+// const char* password = "emreefe1";
+
 // Water level monitoring
 volatile int waterLevel = 0;
-const int threshold = 1600;
+const int threshold = 1400;
 
 //  Turbidity Monitorıng
 volatile int turbidityLevel;
@@ -52,6 +54,18 @@ unsigned long unclogTime = 100;
 // System Flags
 bool washingFlag = false;
 bool stop_servo = false;
+bool cycleFlag = true;
+
+// PID Params
+int error;
+int prev_error = 0;
+int delta_error;
+float Kd = 0.2;
+
+int xAxis = 0;
+
+int print_counter = 0;
+
 ///////////////////////////////////////////////////////////////////////////// FUNCTION DEFINITIONS
 
 
@@ -82,20 +96,45 @@ void setup() {
   xTaskCreatePinnedToCore(webServerTask, "WebServerTask", 10000, NULL, 1, NULL, 1);  // Core 1
 }
 
+
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
-  if (stop_servo){
+
+  if (print_counter % 10 == 0) {
+    Serial.print(turbidityLevel);  // Print turbidity level
+    Serial.print("\t");
+    Serial.println(waterLevel);
+    print_counter = 1;
+  }
+  
+  print_counter++;
+
+  if (stop_servo) {
     myservo.write(94);
     delay(10);
     stop_servo = false;
   }
-  if (washingFlag == 1) {
+
+  if (waterLevel > 600 && cycleFlag) {
+    cycleFlag = false;
+  }
+
+  if (waterLevel < 500) {
+    cycleFlag = true;
+  }
+
+  waterLevel = analogRead(waterLevelSensor);
+  turbidityLevel = analogRead(turbiditySensor);
+
+  if (washingFlag && cycleFlag) {
+
+    // Print water level
+    delay(10);
     analogWrite(vibrationA, 4095);
-    waterLevel = analogRead(waterLevelSensor);
-    turbidityLevel = analogRead(turbiditySensor);
-    int error = threshold - waterLevel;
-    motorInput = constrain(map(error, 0, threshold, 0, 4095), 0, 3600);
-    // Serial.println(motorInput);
+    error = threshold - waterLevel;
+    delta_error = error - prev_error;
+    prev_error = error;
+    motorInput = constrain(map(error + delta_error * Kd, 0, threshold, 0, 4095), 0, 3600);
     if (waterLevel < threshold) {
       analogWrite(A3, motorInput);
       delay(10);
@@ -117,6 +156,7 @@ void loop() {
     analogWrite(A4, 0);
     delay(10);
   }
+  delay(10);
 }
 
 ///////////////////////////////////////////////////////////////////////////// Task: Web Server and Servo Control
@@ -138,7 +178,7 @@ void webServerTask(void* parameter) {
   while (true) {
     WiFiClient client = server.available();
     if (client) {
-      Serial.println("New Client.");
+      // Serial.println("New Client.");
       String currentLine = "";
       String header = "";
 
@@ -246,6 +286,15 @@ void webServerTask(void* parameter) {
             client.println("<button class='btn-green' onclick='setWashingFlag(1)'>START</button>");
             client.println("<button class='btn-red' onclick='setWashingFlag(0)'>STOP</button>");
             client.println("</div>");
+
+            client.println("<div class='container'>");
+            client.println("<h2>Turbidity Level: " + String(turbidityLevel) + "</h2>");
+            client.println("</div>");
+
+            client.println("<div class='container'>");
+            client.println("<h2>Water Level: " + String(waterLevel) + "</h2>");
+            client.println("</div>");
+
             client.println("<p id='errorMessage' style='color:red;'></p>");
             client.println("<script>");
             client.println("function setServo(pos) {");
@@ -287,18 +336,18 @@ void webServerTask(void* parameter) {
         int timeEnd = header.indexOf(' ', timeStart);
         String timeString = header.substring(timeStart, timeEnd);
         rotationDuration = float(timeString.toInt());
-        rotationDuration = rotationDuration/16.32;
+        rotationDuration = rotationDuration / 16.32;
 
         if (targetPosition == 94) {
           myservo.write(94);  // Stop
           isRotating = false;
           stop_servo = true;
-          Serial.println("Servo Stopped.");
+          // Serial.println("Servo Stopped.");
         } else {
           myservo.write(targetPosition);
           rotationStartTime = millis();
           isRotating = true;
-          Serial.println("Servo moving to position: " + valueString);
+          // Serial.println("Servo moving to position: " + valueString);
         }
       } else if (header.indexOf("GET /?washingFlag=") >= 0) {
         int pos1 = header.indexOf('=') + 1;
@@ -310,11 +359,12 @@ void webServerTask(void* parameter) {
         } else {
           digitalWrite(green, LOW);
         }
-        Serial.println("Washing flag updated: " + flagString);
+        // Serial.println("Washing flag updated: " + flagString);
       }
 
+
       client.stop();
-      Serial.println("Client disconnected.");
+      // Serial.println("Client disconnected.");
     }
 
     // if (isRotating && (millis() - lastCWtime >= portioningInterval)){
@@ -332,7 +382,6 @@ void webServerTask(void* parameter) {
       isRotating = false;
       Serial.println("Servo rotation completed.");
     }
-
     delay(10);
   }
 }
