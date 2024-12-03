@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Serial Communication with ESP32</title>
+    <style>
+      body {
+        font-family: Helvetica, sans-serif;
+        text-align: center;
+        margin: 0;
+        background: url("https://wallpapercave.com/wp/wp3592385.jpg") no-repeat
+          center center fixed;
+        background-size: cover;
+        color: black;
+      }
+      .header {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0);
+      }
+      .header img {
+        max-height: 80px;
+        object-fit: contain;
+        width: auto;
+        max-width: 45%;
+      }
+      .container {
+        margin: 50px auto;
+        max-width: 600px;
+        background-color: rgba(126, 126, 126, 0.4);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      }
+      button {
+        font-size: 18px;
+        padding: 15px 30px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.3s;
+      }
+      button:hover {
+        transform: scale(1.1);
+      }
+      .btn-green {
+        background-color: #28a745;
+        color: white;
+      }
+      .btn-green:hover {
+        background-color: #218838;
+      }
+      .btn-red {
+        background-color: #dc3545;
+        color: white;
+      }
+      .btn-red:hover {
+        background-color: #c82333;
+      }
+      .btn-gray {
+        background-color: #6c757d;
+        color: white;
+      }
+      .btn-gray:hover {
+        background-color: #5a6268;
+      }
+      input[type="number"] {
+        padding: 10px;
+        font-size: 18px;
+        margin-top: 10px;
+        border-radius: 5px;
+        border: 2px solid #ccc;
+      }
+      h2 {
+        font-size: 24px;
+        margin-top: 30px;
+      }
+      p.error {
+        color: red;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/9/95/Logo_EPFL_2019.svg"
+        alt="EPFL Logo"
+      />
+      <img
+        src="https://images.squarespace-cdn.com/content/v1/66e0a1b90e50d05da21c996f/ef2ff8f5-7d70-4679-973c-abf29e29d44a/logo-black.png"
+        alt="Other Logo"
+      />
+    </div>
+
+    <div class="container">
+      <h1>Portioning System</h1>
+      <label for="timeInput">Rotation Time (seconds): </label>
+      <input type="number" id="timeInput" value="1" min="0" /><br /><br />
+      <button class="btn-green" onclick="portion()">Portion</button>
+      <button class="btn-gray" onclick="stopPortion()">Stop Portion</button>
+    </div>
+
+    <div class="container">
+      <h1>Washing Process</h1>
+      <button class="btn-green" onclick="startWashing()">Start Washing</button>
+      <button class="btn-red" onclick="stopWashing()">Stop Washing</button>
+    </div>
+
+    <div class="container">
+      <!-- Connect Button -->
+      <button id="connectButton" class="btn-blue">Connect to Serial</button>
+    </div>
+
+    <p id="errorMessage" class="error"></p>
+
+    <script>
+      let port;
+      let writer;
+
+      // Function to connect to the serial port
+      async function connectToSerial() {
+        try {
+          // Request a port and open a connection
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 });
+
+          // Get a writer for sending data
+          writer = port.writable.getWriter();
+          console.log("Connected to serial device.");
+          document.getElementById("errorMessage").textContent = ""; // Clear any previous error messages
+        } catch (error) {
+          console.error("Failed to connect to serial port:", error);
+          document.getElementById("errorMessage").textContent =
+            "Failed to connect to the serial port.";
+        }
+      }
+
+      // Function to send data to the serial port
+      async function sendToSerial(data) {
+        try {
+          const encoder = new TextEncoder();
+          const byteArray = encoder.encode(data + "\n"); // Adding newline as ESP32 expects it
+          await writer.write(byteArray);
+          console.log("Data sent:", data);
+        } catch (error) {
+          console.error("Failed to send data:", error);
+          document.getElementById("errorMessage").textContent =
+            "Failed to send data.";
+        }
+      }
+
+      // Portion function to send SET_POSITION with time
+      function portion() {
+        const timeInput = document.getElementById("timeInput").value;
+        const errorMessage = document.getElementById("errorMessage");
+        errorMessage.textContent = "";
+        if (isNaN(timeInput) || timeInput <= 0) {
+          errorMessage.textContent =
+            "Please enter a valid positive number for the time.";
+          return;
+        }
+        const timeInMilliseconds = timeInput;
+        sendToSerial(`SET_POSITION ${timeInMilliseconds}`);
+      }
+
+      // Stop portion function to send STOP_SERVO
+      function stopPortion() {
+        sendToSerial("STOP_SERVO");
+      }
+
+      // Start washing function to send START_WASHING
+      function startWashing() {
+        sendToSerial("START_WASHING");
+      }
+
+      // Stop washing function to send STOP_WASHING
+      function stopWashing() {
+        sendToSerial("STOP_WASHING");
+      }
+
+      // Connect to serial when "Connect to Serial" button is clicked
+      document
+        .getElementById("connectButton")
+        .addEventListener("click", connectToSerial);
+    </script>
+  </body>
+</html>
