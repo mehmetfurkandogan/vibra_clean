@@ -1,6 +1,6 @@
 # Define the original data and the max value (4095) and the range we want to map to (0 to 3.3)
 original_values = [
-    1800, 2380, 2100, 2150, 2200, 800, 2000, 2380, 1920, 800, 2100
+    1800, 2380, 2100, 2150, 2200, 800, 2000, 2380, 1920, 800, 2100, 2000, 2100
 ]
 max_value = 4095
 min_value = 0

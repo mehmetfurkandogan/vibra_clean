@@ -55,6 +55,9 @@ time_turb = time_turb[2:-2]
 smoothed_time = timeData[len(timeData) - len(smoothed_water_level):] 
 time_thres = 382
 
+smoothed_turbidity = 2400*np.ones_like(smoothed_turbidity) - np.array(smoothed_turbidity)
+smoother_turbidity_filtered = 2400*np.ones_like(smoothed_turbidity_filtered) - np.array(smoothed_turbidity_filtered)
+
 # Create a figure with 2 subplots (2 rows, 1 column)
 fig, axs = plt.subplots(2, 1, figsize=(10, 8))
 

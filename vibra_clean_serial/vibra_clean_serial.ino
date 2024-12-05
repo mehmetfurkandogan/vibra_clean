@@ -41,10 +41,9 @@ bool isRotating = false;
 bool washingFlag = false;
 bool cycleFlag = true;
 int cycleCount = 0;
-int cycleLimit = 2;
+int cycleLimit = 1;
 
 int print_counter = 0;
-
 
 
 // PID Params
@@ -102,7 +101,7 @@ void loop() {
   turbidityLevel = analogRead(turbiditySensor);
 
 
-  if (averageWaterLevel > 400 && cycleFlag) {
+  if (averageWaterLevel > 500 && cycleFlag) {
     cycleFlag = false;
     cycleCount++;
   }
@@ -162,7 +161,7 @@ void loop() {
     if (command.startsWith("SET_POSITION")) {
       // Extract the duration from the command
       String durationStr = command.substring(13);          // Get everything after "SET_POSITION "
-      rotationDuration = durationStr.toInt() / 20 * 1000;  // Convert to integer (milliseconds)
+      rotationDuration = durationStr.toInt() / 20.13 * 1000;  // Convert to integer (milliseconds)
 
       if (rotationDuration > 0) {
         Serial.println("Servo will rotate for: " + String(rotationDuration) + "ms");

@@ -58,7 +58,7 @@ bool washingFlag = false;
 bool stop_servo = false;
 bool cycleFlag = true;
 int cycleCount = 0;
-int cycleLimit = 2;
+int cycleLimit = 1;
 
 // PID Params
 int error;
@@ -109,12 +109,12 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
 
-  // if (print_counter % 10 == 0) {
-  //   Serial.print(turbidityLevel);  // Print turbidity level
-  //   Serial.print("\t");
-  //   Serial.println(waterLevel);
-  //   print_counter = 1;
-  // }
+  if (print_counter % 10 == 0) {
+    Serial.print(turbidityLevel);  // Print turbidity level
+    Serial.print("\t");
+    Serial.println(waterLevel);
+    print_counter = 1;
+  }
 
   if (washingFlag) {
     digitalWrite(green, HIGH);
@@ -140,7 +140,7 @@ void loop() {
     cycleCount = 0;
   }
 
-  if (averageWaterLevel < 300) {
+  if (averageWaterLevel < 150) {
     cycleFlag = true;
   }
 
@@ -159,8 +159,8 @@ void loop() {
   // If we've accumulated 10 readings, calculate the average
   if (waterLevelIndex == 0) {
     averageWaterLevel = totalWaterLevel / MAX_READINGS;
-    Serial.print("Average Water Level: ");
-    Serial.println(averageWaterLevel);  // Print the average
+    // Serial.print("Average Water Level: ");
+    // Serial.println(averageWaterLevel);  // Print the average
   }
 
   if (washingFlag && cycleFlag) {
