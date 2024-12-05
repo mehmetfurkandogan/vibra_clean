@@ -321,8 +321,8 @@ void webServerTask(void* parameter) {
             client.println("<div class='container'>");
             client.println("<h1>Cleaning Process</h1>");
             client.println("<label for='cycleLimitInput'>Cycle Limit: </label>");
-            client.println("<input type='number' id='cycleLimitInput' value='1' min='1'>");
-            client.println("<button class='btn-blue' onclick='setCycleLimit()'>Set Cycle Limit</button><br>");
+            client.println("<input type='number' id='cycleLimitInput' value='1' min='1'><br><br>");
+            // client.println("<button class='btn-blue' onclick='setCycleLimit()'>Set Cycle Limit</button>");
             client.println("<button class='btn-green' onclick='setWashingFlag(1)'>START</button>");
             client.println("<button class='btn-red' onclick='setWashingFlag(0)'>STOP</button>");
             client.println("</div>");
@@ -354,6 +354,7 @@ void webServerTask(void* parameter) {
             client.println("function setWashingFlag(flag) {");
             client.println("    fetch('/?washingFlag=' + flag)");
             client.println("        .catch((error) => { console.error('Error:', error); });");
+            client.println("    setCycleLimit();");
             client.println("}");
             client.println("function setCycleLimit() {");
             client.println("    const cycleLimitInput = document.getElementById('cycleLimitInput').value;");
