@@ -28,6 +28,10 @@
 125.2
 
 
+147.2 plastic cup weight
+
+154.7 mL for threshold 400
+
 
 
 

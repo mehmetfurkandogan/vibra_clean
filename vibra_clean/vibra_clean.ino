@@ -320,8 +320,13 @@ void webServerTask(void* parameter) {
             client.println("</div>");
             client.println("<div class='container'>");
             client.println("<h1>Cleaning Process</h1>");
+            client.println("<label for='cycleLimitInput'>Cycle Limit: </label>");
+            client.println("<input type='number' id='cycleLimitInput' value='1' min='1'>");
+            client.println("<button class='btn-blue' onclick='setCycleLimit()'>Set Cycle Limit</button><br>");
             client.println("<button class='btn-green' onclick='setWashingFlag(1)'>START</button>");
             client.println("<button class='btn-red' onclick='setWashingFlag(0)'>STOP</button>");
+            client.println("</div>");
+
             client.println("</div>");
 
             client.println("<div class='container'>");
@@ -350,7 +355,20 @@ void webServerTask(void* parameter) {
             client.println("    fetch('/?washingFlag=' + flag)");
             client.println("        .catch((error) => { console.error('Error:', error); });");
             client.println("}");
+            client.println("function setCycleLimit() {");
+            client.println("    const cycleLimitInput = document.getElementById('cycleLimitInput').value;");
+            client.println("    const errorMessage = document.getElementById('errorMessage');");
+            client.println("    errorMessage.textContent = '';");  // Clear previous errors
+            client.println("    if (isNaN(cycleLimitInput) || cycleLimitInput < 1) {");
+            client.println("        errorMessage.textContent = 'Please enter a valid positive number for the cycle limit.';");
+            client.println("        return;");
+            client.println("    }");
+            client.println("    fetch('/?cycleLimit=' + cycleLimitInput)");
+            client.println("        .catch((error) => { console.error('Error:', error); });");
+            client.println("}");
             client.println("</script>");
+
+
             client.println("</body>");
             client.println("</html>");
 
@@ -394,6 +412,14 @@ void webServerTask(void* parameter) {
         // Serial.println("Washing flag updated: " + flagString);
       }
 
+      else if (header.indexOf("GET /?cycleLimit=") >= 0) {
+        int pos1 = header.indexOf('=') + 1;
+        int pos2 = header.indexOf(' ', pos1);
+        String cycleLimitString = header.substring(pos1, pos2);
+        cycleLimit = cycleLimitString.toInt();
+        cycleCount = 0;
+        Serial.println("Cycle Limit updated: " + String(cycleLimit));
+      }
 
       client.stop();
       // Serial.println("Client disconnected.");
