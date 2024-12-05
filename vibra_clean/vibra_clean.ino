@@ -16,6 +16,8 @@
 #define green 11
 #define vibrationA 9
 #define turbiditySensor 20
+#define MAX_READINGS 10
+
 
 
 ///////////////////////////////////////////////////////////////////////////// CUSTOM VARIABLES
@@ -55,6 +57,8 @@ unsigned long unclogTime = 100;
 bool washingFlag = false;
 bool stop_servo = false;
 bool cycleFlag = true;
+int cycleCount = 0;
+int cycleLimit = 2;
 
 // PID Params
 int error;
@@ -65,6 +69,11 @@ float Kd = 0.2;
 int xAxis = 0;
 
 int print_counter = 0;
+
+int waterLevelReadings[MAX_READINGS];  // Array to store last 10 water level readings
+int waterLevelIndex = 0;               // Index to track where to store the next water level
+int totalWaterLevel = 0;               // Variable to store the sum of the readings
+int averageWaterLevel = 0;             // Variable to store the average of the readings
 
 ///////////////////////////////////////////////////////////////////////////// FUNCTION DEFINITIONS
 
@@ -100,13 +109,19 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////// LOOP
 void loop() {
 
-  if (print_counter % 10 == 0) {
-    Serial.print(turbidityLevel);  // Print turbidity level
-    Serial.print("\t");
-    Serial.println(waterLevel);
-    print_counter = 1;
+  // if (print_counter % 10 == 0) {
+  //   Serial.print(turbidityLevel);  // Print turbidity level
+  //   Serial.print("\t");
+  //   Serial.println(waterLevel);
+  //   print_counter = 1;
+  // }
+
+  if (washingFlag) {
+    digitalWrite(green, HIGH);
+  } else {
+    digitalWrite(green, LOW);
   }
-  
+
   print_counter++;
 
   if (stop_servo) {
@@ -115,16 +130,38 @@ void loop() {
     stop_servo = false;
   }
 
-  if (waterLevel > 600 && cycleFlag) {
+  if (averageWaterLevel > 400 && cycleFlag) {
     cycleFlag = false;
+    cycleCount++;
   }
 
-  if (waterLevel < 500) {
+  if (cycleCount >= cycleLimit) {
+    washingFlag = false;
+    cycleCount = 0;
+  }
+
+  if (averageWaterLevel < 300) {
     cycleFlag = true;
   }
 
   waterLevel = analogRead(waterLevelSensor);
   turbidityLevel = analogRead(turbiditySensor);
+
+  totalWaterLevel -= waterLevelReadings[waterLevelIndex];
+  totalWaterLevel += waterLevel;
+
+  // Store the current water level in the array at the current index
+  waterLevelReadings[waterLevelIndex] = waterLevel;
+
+  // Move to the next index in the array, and reset to 0 if it reaches MAX_READINGS
+  waterLevelIndex = (waterLevelIndex + 1) % MAX_READINGS;
+
+  // If we've accumulated 10 readings, calculate the average
+  if (waterLevelIndex == 0) {
+    averageWaterLevel = totalWaterLevel / MAX_READINGS;
+    Serial.print("Average Water Level: ");
+    Serial.println(averageWaterLevel);  // Print the average
+  }
 
   if (washingFlag && cycleFlag) {
 
@@ -336,7 +373,7 @@ void webServerTask(void* parameter) {
         int timeEnd = header.indexOf(' ', timeStart);
         String timeString = header.substring(timeStart, timeEnd);
         rotationDuration = float(timeString.toInt());
-        rotationDuration = rotationDuration / 16.32;
+        rotationDuration = rotationDuration / 20.13;
 
         if (targetPosition == 94) {
           myservo.write(94);  // Stop
@@ -354,11 +391,6 @@ void webServerTask(void* parameter) {
         int pos2 = header.indexOf(' ', pos1);
         String flagString = header.substring(pos1, pos2);
         washingFlag = flagString.toInt();
-        if (washingFlag) {
-          digitalWrite(green, HIGH);
-        } else {
-          digitalWrite(green, LOW);
-        }
         // Serial.println("Washing flag updated: " + flagString);
       }
 

@@ -85,6 +85,16 @@
         color: red;
         font-weight: bold;
       }
+      #serialOutput {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 5px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        max-width: 600px;
+        margin: 20px auto;
+        word-wrap: break-word;
+      }
     </style>
   </head>
   <body>
@@ -120,9 +130,12 @@
 
     <p id="errorMessage" class="error"></p>
 
+    <div id="serialOutput"></div>
+
     <script>
       let port;
       let writer;
+      let reader;
 
       // Function to connect to the serial port
       async function connectToSerial() {
@@ -135,6 +148,10 @@
           writer = port.writable.getWriter();
           console.log("Connected to serial device.");
           document.getElementById("errorMessage").textContent = ""; // Clear any previous error messages
+
+          // Start reading data from the serial port
+          reader = port.readable.getReader();
+          readSerialData();
         } catch (error) {
           console.error("Failed to connect to serial port:", error);
           document.getElementById("errorMessage").textContent =
@@ -183,6 +200,45 @@
       // Stop washing function to send STOP_WASHING
       function stopWashing() {
         sendToSerial("STOP_WASHING");
+      }
+
+      // Function to continuously read data from the serial port
+      async function readSerialData() {
+        const decoder = new TextDecoder();
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              reader.releaseLock();
+              break;
+            }
+            const data = decoder.decode(value, { stream: true });
+            console.log("Received data:", data);
+            displayReceivedData(data);
+          }
+        } catch (error) {
+          console.error("Error reading serial data:", error);
+          document.getElementById("errorMessage").textContent =
+            "Error reading serial data.";
+        }
+      }
+      let lastWaterLevel = null;
+      // Function to display received data in the UI
+      function displayReceivedData(data) {
+        const serialOutput = document.getElementById("serialOutput");
+
+        // Assuming the message format is "Water Level: <value>"
+        const waterLevelMatch = data.match(/Water Level: (\d+(\.\d+)?)/);
+
+        if (waterLevelMatch) {
+          const currentWaterLevel = waterLevelMatch[1];
+
+          // Only update if the water level has changed
+          if (currentWaterLevel !== lastWaterLevel) {
+            serialOutput.textContent = `Water Level: ${currentWaterLevel}`;
+            lastWaterLevel = currentWaterLevel; // Update the last displayed water level
+          }
+        }
       }
 
       // Connect to serial when "Connect to Serial" button is clicked
