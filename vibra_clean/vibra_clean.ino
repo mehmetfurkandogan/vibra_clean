@@ -130,7 +130,7 @@ void loop() {
     stop_servo = false;
   }
 
-  if (averageWaterLevel > 400 && cycleFlag) {
+  if (averageWaterLevel > 600 && cycleFlag) {
     cycleFlag = false;
     cycleCount++;
   }
