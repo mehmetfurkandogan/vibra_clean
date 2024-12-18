@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+authors:
+  - family-names: "Gürsoy"
+    given-names: "Mustafa Emre"
+  - family-names: "Doğan"
+    given-names: "Mehmet Furkan"
+  - family-names: "Plumb"
+    given-names: "Olivia"
+  - family-names: "Canoen"
+    given-names: "Louis"
+  - family-names: "Keusch"
+    given-names: "Guillaume"
+  - family-names: "Griffon"
+    given-names: "Pierre"
+title: "VibraClean: A novel look at sustainability from a food sanitation perspective"
+version: "1.0"
+keywords:
+  - "sustainability"
+  - "food sanitation"
+date-released: 2024-12-18
+repository-code: "https://github.com/mehmetfurkandogan/vibra_clean"
