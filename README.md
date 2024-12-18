@@ -14,6 +14,15 @@ This repository contains the various codes required for the VibraClean project, 
 - **Web-Based User Interface**: HTML files for the web-based user interface that allows users to interact with the device.
 - **System Identification**: Python scripts for system identification purposes.
 
+## Group Members
+
+- Mustafa Emre Gürsoy
+- Mehmet Furkan Doğan
+- Olivia Plumb
+- Louis Canoen
+- Guillaume Keusch
+- Pierre Griffon
+
 ## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
